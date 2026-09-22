@@ -1,0 +1,36 @@
+{
+  "name": "ansolari-public-examples",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "jest --runInBand",
+    "typecheck": "tsc --noEmit",
+    "demo": "tsc && node dist/scripts/demo.js"
+  },
+  "devDependencies": {
+    "@types/jest": "30.0.0",
+    "@types/node": "24.0.0",
+    "jest": "30.0.0",
+    "ts-jest": "29.4.5",
+    "typescript": "5.9.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/examples/**/*.spec.ts"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.json"
+        }
+      ]
+    }
+  }
+}
