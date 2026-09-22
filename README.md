@@ -4,7 +4,7 @@ Ansolari is an AI voice agent designed to help automotive businesses handle inco
 
 The project focuses on a concrete operational problem: garages often miss calls while technicians are working, which can lead to lost appointments and repetitive administrative work.
 
-> **Status:** Active development. The main source repository is private; this public repository documents the architecture, validated integrations, engineering decisions, and current limitations.
+> **Status:** Active development. The main source repository is private; this repository provides selected anonymized, executable source excerpts, architecture notes and explicit limitations. The complete application remains private.
 
 ## What is implemented
 
@@ -15,9 +15,9 @@ The project focuses on a concrete operational problem: garages often miss calls 
 - Real availability checks with the Google Calendar FreeBusy API
 - Appointment creation with Google Calendar Events
 - Slot revalidation immediately before booking
-- Conflict and double-booking prevention
+- Conflict revalidation and sequential duplicate rejection (concurrent booking remains a known limitation)
 - Protected test endpoints and environment-based secret management
-- 12 automated tests covering calendar and booking behaviour
+- Executable Jest tests for extracted calendar behaviour and synthetic Media Streams events
 
 ## Architecture
 
@@ -49,7 +49,9 @@ apps/
 7. If the slot is still available, the appointment is created in Google Calendar.
 8. If it has become unavailable, the API returns a controlled conflict response instead of creating a duplicate booking.
 
-## Validated results
+## Historical integration observations (author-reported)
+
+The following observations were already recorded in this repository. They were not rerun during extraction; the public tests use mocks and do not independently verify these live results.
 
 ### Twilio Voice
 
@@ -70,7 +72,7 @@ The real OAuth and Calendar workflow has been validated end to end:
 - generation of three available appointment slots
 - real event creation
 - removal of the newly booked slot from subsequent availability results
-- final revalidation to prevent concurrent or duplicate booking
+- final revalidation to detect conflicts before insertion; this is not an atomic reservation
 
 ## Reliability and security
 
@@ -82,19 +84,28 @@ The real OAuth and Calendar workflow has been validated end to end:
 - Availability is revalidated before every booking instead of trusting a previously proposed slot.
 - External-service errors are converted into controlled application responses.
 
-## Testing
+## Run the public examples
 
-The current automated test suite contains 12 passing tests covering critical scheduling behaviour, including:
+Requires Node.js >=22.13 and pnpm 11.20.0 (`packageManager` is pinned).
 
-- available-slot calculation
-- morning and afternoon filtering
-- rejection of unproposed times
-- appointment creation
-- conflict detection
-- double-booking prevention
-- Google Calendar provider behaviour with mocked external calls
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm test
+pnpm demo
+```
 
-Build and lint checks also pass for the validated implementation.
+No credentials or external services are required after installation. All demo data and audio are synthetic. [`.env.example`](.env.example) contains variable names only.
+
+- [Provider contract](examples/calendar/calendar.service.ts) and [provider selection](examples/calendar/calendar-provider.interface.ts)
+- [Real extracted availability and booking logic](examples/calendar/google-calendar.service.ts)
+- [Adapted original Jest tests](examples/calendar/google-calendar.service.spec.ts) and [conflict/race tests](examples/calendar/conflict.spec.ts)
+- [Media Streams event handling](examples/voice/media-stream-events.example.ts)
+- [Extraction provenance and limitations](docs/PROVENANCE.md)
+- [Technical demo walkthrough](docs/DEMO.md)
+
+The concurrency characterization test passes by demonstrating that two simultaneous Google bookings can both insert an event. A passing suite does **not** imply production-grade double-booking prevention.
 
 ## Technology stack
 
@@ -125,13 +136,7 @@ These limitations are documented deliberately to distinguish validated component
 
 ## Demo
 
-A short technical demonstration is being prepared. It will show:
-
-- a real Twilio call and Media Streams events
-- the OpenAI Realtime connection
-- availability lookup and appointment creation
-- conflict prevention
-- the automated test suite
+Run `pnpm demo` for a local, synthetic demonstration of availability, booking, conflict rejection and inbound audio forwarding. See the [walkthrough](docs/DEMO.md) and [verification record](docs/VERIFICATION.md).
 
 ## Author
 
